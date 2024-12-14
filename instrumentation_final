@@ -1,0 +1,60 @@
+#include <LiquidCrystal_I2C.h> // Include LCD library for I2C communication
+
+// Initialize the LCD. Adjust the address (e.g., 0x27) if needed.
+LiquidCrystal_I2C lcd(0x27, 16, 2);
+
+// Constants
+const int analogPin = A0;      // Analog pin connected to the filtered signal
+const float vRef = 5.0;        // Reference voltage for ADC
+const int adcResolution = 1024; // 10-bit ADC resolution
+const int tempRangeMin = 25;   // Minimum temperature (℃)
+const int tempRangeMax = 35;   // Maximum temperature (℃)
+
+// Lookup Table (ADC value -> Temperature in ℃)
+float tempLUT[] = {
+  25.00, 25.10, 25.20, 25.30, 25.40, 25.50, 25.60, 25.70, 25.80, 25.90,
+  26.00, 26.10, 26.20, 26.30, 26.40, 26.50, 26.60, 26.70, 26.80, 26.90,
+  27.00, 27.10, 27.20, 27.30, 27.40, 27.50, 27.60, 27.70, 27.80, 27.90,
+  28.00, 28.10, 28.20, 28.30, 28.40, 28.50, 28.60, 28.70, 28.80, 28.90,
+  29.00, 29.10, 29.20, 29.30, 29.40, 29.50, 29.60, 29.70, 29.80, 29.90,
+  30.00, 30.10, 30.20, 30.30, 30.40, 30.50, 30.60, 30.70, 30.80, 30.90,
+  31.00, 31.10, 31.20, 31.30, 31.40, 31.50, 31.60, 31.70, 31.80, 31.90,
+  32.00, 32.10, 32.20, 32.30, 32.40, 32.50, 32.60, 32.70, 32.80, 32.90,
+  33.00, 33.10, 33.20, 33.30, 33.40, 33.50, 33.60, 33.70, 33.80, 33.90,
+  34.00, 34.10, 34.20, 34.30, 34.40, 34.50, 34.60, 34.70, 34.80, 34.90,
+  35.00
+};
+
+// Setup function
+void setup() {
+  lcd.init(); // Initialize LCD
+  lcd.backlight(); // Turn on backlight
+  lcd.setCursor(0, 0);
+  lcd.print("Temp Sensor");
+  delay(2000);
+  lcd.clear();
+}
+
+// Loop function
+void loop() {
+  // Read ADC value
+  int adcValue = analogRead(analogPin);
+
+  // Map ADC value to the lookup table
+  float temperature = mapADCtoTemperature(adcValue);
+
+  // Display the temperature on the LCD
+  lcd.setCursor(0, 0);
+  lcd.print("Temp: ");
+  lcd.print(temperature, 2); // Print with 2 decimal places
+  lcd.print(" C");
+
+  // Delay for stability
+  delay(500);
+}
+
+// Function to map ADC value to temperature using LUT
+float mapADCtoTemperature(int adcValue) {
+  int index = map(adcValue, 0, adcResolution - 1, 0, sizeof(tempLUT) / sizeof(tempLUT[0]) - 1);
+  return tempLUT[index];
+}
